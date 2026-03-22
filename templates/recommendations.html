@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Movie Recommendations</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+  <body>
+    <nav>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/how_to_use">How To Use</a></li>
+        <li><a href="/about">About Us</a></li>
+      </ul>
+    </nav>
+
+    <header>
+      <h1>Your Movie Recommendations</h1>
+      <h3>Discover movies tailored just for you</h3>
+    </header>
+
+    <div class="container">
+      {% if movies %}
+      <table>
+        <tr>
+          <th>Title</th>
+          <th>Average Rating</th>
+          <th>Release Year</th>
+        </tr>
+        {% for movie in movies %}
+        <tr>
+          <td>{{ movie.title }}</td>
+          <td>{{ movie.avg_rating }}</td>
+          <td>{{ movie.release_year }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+      <p
+        style="
+          margin-top: 20px;
+          text-align: center;
+          color: var(--text-secondary);
+        "
+      >
+        <a
+          href="/"
+          style="
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+          "
+          >← Get More Recommendations</a
+        >
+      </p>
+      {% else %}
+      <div style="text-align: center; padding: 40px 20px">
+        <h2 style="color: var(--text-secondary); margin-bottom: 10px">
+          No recommendations found
+        </h2>
+        <p style="color: var(--text-secondary); margin-bottom: 20px">
+          Please select at least one genre and try again.
+        </p>
+        <a
+          href="/"
+          style="
+            display: inline-block;
+            background: linear-gradient(
+              135deg,
+              var(--primary-light) 0%,
+              var(--primary-color) 100%
+            );
+            color: white;
+            padding: 10px 24px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+          "
+          >← Back to Home</a
+        >
+      </div>
+      {% endif %}
+    </div>
+
+    <footer>
+      <p>
+        &copy; 2025 MovieVerse - Movie Recommendation System. All rights
+        reserved.
+      </p>
+    </footer>
+  </body>
+</html>

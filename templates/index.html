@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MovieVerse - Movie Recommendation System</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+  <body>
+    <!-- Navigation Bar -->
+    <nav>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/how_to_use">How To Use</a></li>
+        <li><a href="/about">About Us</a></li>
+      </ul>
+    </nav>
+
+    <!-- Header Section -->
+    <header>
+      <h1 style="color: aliceblue">MovieVerse</h1>
+      <h3>
+        Explore and discover the latest movies up to 2024 with personalized
+        recommendations!
+      </h3>
+    </header>
+
+    <!-- Main Content Section -->
+    <div class="container">
+      <h3>
+        Select your preferred movie genres and sorting preference to get
+        tailored recommendations
+      </h3>
+      <form action="/recommend" method="POST">
+        <div class="checkbox-group">
+          <label>
+            <input type="checkbox" name="genres" value="Action" /> Action
+          </label>
+          <label>
+            <input type="checkbox" name="genres" value="Adventure" /> Adventure
+          </label>
+          <label>
+            <input type="checkbox" name="genres" value="Animation" /> Animation
+          </label>
+          <label>
+            <input type="checkbox" name="genres" value="Comedy" /> Comedy
+          </label>
+          <label>
+            <input type="checkbox" name="genres" value="Drama" /> Drama
+          </label>
+          <label>
+            <input type="checkbox" name="genres" value="Romance" /> Romance
+          </label>
+          <label>
+            <input type="checkbox" name="genres" value="Horror" /> Horror
+          </label>
+          <label>
+            <input type="checkbox" name="genres" value="Sci-Fi" /> Sci-Fi
+          </label>
+          <label>
+            <input type="checkbox" name="genres" value="Fantasy" /> Fantasy
+          </label>
+          <label>
+            <input type="checkbox" name="genres" value="Thriller" /> Thriller
+          </label>
+        </div>
+
+        <div class="preference">
+          <label>
+            <input
+              type="radio"
+              name="preference"
+              value="high_rating"
+              required
+            />
+            <strong>High Rating</strong> - Top-rated classics and favorites
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="preference"
+              value="recent_release"
+              required
+            />
+            <strong>Recent Release</strong> - Latest releases up to 2024
+          </label>
+        </div>
+
+        <button type="submit">Get Recommendations</button>
+      </form>
+    </div>
+
+    <!-- Footer Section -->
+    <footer>
+      <p>
+        &copy; 2025 MovieVerse - Movie Recommendation System. All rights
+        reserved.
+      </p>
+    </footer>
+  </body>
+</html>
