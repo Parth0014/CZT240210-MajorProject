@@ -1,221 +1,193 @@
 # Movie Recommendation System
 
-A web-based movie recommendation system that suggests movies based on user preferences for genres and rating criteria.
+A Flask web app that recommends movies using a preference-aware K-Nearest Neighbors (KNN) model and provides an in-page visualization to explain recommendations.
 
-## 📋 Project Overview
+## Overview
 
-This project is a Flask-based web application that provides personalized movie recommendations to users. The system analyzes user preferences and recommends movies from a curated database based on selected genres and sorting preferences.
+This project recommends top 10 movies based on:
 
-## 🛠️ Tech Stack
+- Selected genres
+- Selected preference:
+- `High Rating`
+- `Recent Release`
+
+It includes:
+
+- A KNN engine with weighted Euclidean distance
+- A movie list tab and visualization tab on the same results page
+- A chart and metrics summary for top 10 nearest matches
+- A popup explaining how metrics and KNN calculations work
+
+## Tech Stack
 
 ### Backend
 
-- **Framework**: Flask (Python)
-- **Data Processing**: Pandas
-- **Server**: Flask Development Server
+- Python 3
+- Flask
+- Pandas
+- NumPy
+- scikit-learn (`NearestNeighbors`)
 
 ### Frontend
 
-- **HTML/CSS**: Static HTML templates with custom CSS styling
-- **Templating**: Jinja2 (Flask's template engine)
+- HTML/CSS
+- Jinja2 templates
+- Chart.js
 
 ### Data
 
-- **Format**: CSV files
-- **Data Sources**:
-  - `movie.csv` - Movie metadata (ID, title, genres, release year)
-  - `ratings.csv` - User ratings data (userID, movieID, rating)
+- `movie.csv` (movieId, title, genres)
+- `ratings.csv` (tab-delimited user ratings)
 
-## 🧠 ML Technique
+## Current ML Approach
 
-### Recommendation Algorithm: Content-Based Filtering with Weighted Aggregation
+### Algorithm
 
-The project uses a **Content-Based Hybrid Recommendation System** that combines:
+Preference-aware K-Nearest Neighbors (KNN) using Euclidean distance.
 
-1. **Genre-Based Filtering**:
-   - Filters movies based on user-selected genres
-   - Uses multi-genre support (movies can belong to multiple genres)
+### Feature Vector
 
-2. **Collaborative Aggregation**:
-   - Aggregates user ratings for filtered movies
-   - Calculates average ratings across all users who rated each movie
+Each movie is represented as:
 
-3. **Ranking Strategies**:
-   - **High Rating Preference**: Ranks movies by average user rating (highest first)
-   - **Recency Preference**: Ranks movies by release year (newest first)
+- Genre binary vector (one feature per unique genre)
+- Normalized average rating (`rating / 5`)
+- Normalized release year (`(year - minYear) / (maxYear - minYear)`)
 
-### Algorithm Flow
+In the current dataset:
 
-```
-1. User selects genres and preference (high_rating or recent)
-   ↓
-2. Filter movies matching selected genres
-   ↓
-3. Merge with ratings data
-   ↓
-4. Calculate average rating per movie
-   ↓
-5. Sort by selected preference
-   ↓
-6. Return top 10 recommendations
-```
+- 20 genre features
+- +1 rating feature
+- +1 year feature
+- Total = 22 features
 
-### Key Features
+### Preference-Aware Weighting
 
-- **Multiple Genre Support**: Users can select one or more genres for refined recommendations
-- **Weighted Ratings**: Uses mean aggregation of user ratings for objective recommendations
-- **Flexible Sorting**: Supports both quality-based and recency-based recommendations
-- **Data Cleaning**: Handles missing values and data normalization
+The selected option changes both target values and feature weights before KNN distance calculation.
 
-## 📁 Project Structure
+- `recent_release`
+- rating target: `0.70`
+- year target: `1.00`
+- rating weight: `0.8`
+- year weight: `2.6`
 
-```
+- `high_rating`
+- rating target: `1.00`
+- year target: `0.60`
+- rating weight: `2.0`
+- year weight: `0.8`
+
+This ensures preference impacts similarity directly, not just final sorting.
+
+### Distance
+
+KNN compares weighted vectors:
+
+`distance = sqrt(sum((weighted_movie_i - weighted_user_i)^2))`
+
+The nearest 10 movies are returned as recommendations.
+
+## Recent Changes
+
+- Migrated from simple filtering to KNN recommendation engine
+- Added preference-aware weighting for `High Rating` and `Recent Release`
+- Guaranteed top 10 output with robust rating merge logic
+- Added integrated result page toggle:
+- `Movies List`
+- `Visualization`
+- Added top-10 distance trend chart (continuous style)
+- Added chart summary metrics:
+- Best Match
+- Average Distance
+- Distance Range
+- Added selection summary in list tab:
+- Selected genres
+- Selected option
+- Added popup: "How Metrics Are Calculated (6 Metrics)"
+- Includes match quality (stars + remark) threshold logic
+- Added feature tooltip (`?`) explaining feature count
+- Fixed NaN handling and pandas chained assignment warning
+- Hardened JS rendering for titles with special characters
+
+## How It Works (Flow)
+
+1. User selects genres and option on home page
+2. Backend builds feature matrix for all movies
+3. Backend builds user vector from selected genres + preference targets
+4. Feature weighting is applied based on selected option
+5. KNN computes distances and finds nearest 10
+6. Results page displays:
+
+- Movie list tab
+- Visualization tab with chart and metrics
+
+## Project Structure
+
+```text
 CZT240210-MajorProject-main/
-├── app.py                  # Flask application and recommendation engine
-├── movie.csv               # Movie dataset
-├── ratings.csv             # User ratings dataset
-├── requirements.txt        # Python dependencies
+├── app.py
+├── movie.csv
+├── ratings.csv
+├── README.md
 ├── static/
-│   └── style.css          # Custom styling for the web interface
+│   └── style.css
 └── templates/
-    ├── index.html         # Home page with genre selection
-    ├── recommendations.html # Recommendations results page
-    ├── error.html         # Error message display
-    ├── how_it_works.html  # Instructions/How-to page
-    └── about.html         # About the project page
+    ├── index.html
+    ├── recommendations.html
+    ├── recommendations_viz.html
+    ├── error.html
+    ├── how_it_works.html
+    └── about.html
 ```
 
-## 🚀 Quick Start
+## Routes
+
+| Route            | Method | Purpose                                            |
+| ---------------- | ------ | -------------------------------------------------- |
+| `/`              | GET    | Home page (genre + option selection)               |
+| `/recommend`     | POST   | KNN recommendations + integrated visualization tab |
+| `/recommend_viz` | POST   | Dedicated visualization page                       |
+| `/how_to_use`    | GET    | How-to page                                        |
+| `/about`         | GET    | About page                                         |
+
+## Quick Start
 
 ### Prerequisites
 
-- Python 3.7+
-- pip (Python package manager)
+- Python 3.8+
+- pip
 
-### Installation
+### Install
 
-1. **Clone the repository** (if applicable)
-
-   ```bash
-   cd CZT240210-MajorProject-main
-   ```
-
-2. **Install dependencies**
-
-   ```bash
-   pip install flask pandas
-   ```
-
-3. **Run the application**
-
-   ```bash
-   python app.py
-   ```
-
-4. **Access the web interface**
-   - Open your browser and navigate to: `http://localhost:5000`
-
-## 💡 How It Works
-
-1. **Home Page** (`/`):
-   - Users are presented with all available movie genres
-   - They can select one or more genres
-   - Choose preference: "High Rating" or "Recent"
-
-2. **Recommendation Engine** (`/recommend`):
-   - Processes selected genres and preferences
-   - Filters movies and calculates recommendations
-   - Displays top 10 results with ratings and release years
-
-3. **Results Display**:
-   - Shows recommended movies with average ratings
-   - Displays release year for context
-   - Provides error handling for invalid selections
-
-## 📊 Data Processing Pipeline
-
-### Movie Data (`movie.csv`)
-
-- **movieId**: Unique identifier
-- **title**: Movie title with release year in parentheses
-- **genres**: Pipe-separated genre list
-
-### Ratings Data (`ratings.csv`)
-
-- **userId**: User identifier
-- **movieId**: Movie identifier
-- **rating**: User's rating score
-- Tab-delimited format
-
-### Data Cleaning Steps
-
-1. Remove rows with missing title or genres
-2. Remove rows with missing userId, movieId, or rating
-3. Extract and convert release year from title
-4. Ensure proper data type conversions (movieId as integer)
-
-## 🔧 Configuration
-
-The application runs with the following Flask settings:
-
-- **Debug Mode**: Enabled (for development)
-- **Host**: localhost (127.0.0.1)
-- **Port**: 5000
-
-To change these, modify the final lines in `app.py`:
-
-```python
-if __name__ == "__main__":
-    app.run(debug=False, host='0.0.0.0', port=8000)
+```bash
+cd CZT240210-MajorProject-main
+pip install flask pandas numpy scikit-learn
 ```
 
-## 🌟 Features
+### Run
 
-- ✅ Multi-genre selection
-- ✅ Real-time recommendation generation
-- ✅ Average rating calculation from user data
-- ✅ Multiple sorting preferences
-- ✅ Error handling for invalid inputs
-- ✅ Responsive web interface
-- ✅ Top 10 recommendations per query
+```bash
+python app.py
+```
 
-## 📈 Performance Considerations
+Open:
 
-- Dataset filtering is done in-memory using Pandas
-- Average ratings are computed on-demand
-- Top 10 results limit optimizes response time
-- Suitable for small to medium-sized datasets
+- `http://127.0.0.1:5000`
 
-## 🔮 Future Enhancements
+## Notes
 
-- Implement collaborative filtering for user-based recommendations
-- Add user accounts and personalization
-- Integrate matrix factorization (SVD, NMF) for advanced recommendations
-- Build a recommendation accuracy evaluation framework
-- Add movie search and filtering functionality
-- Implement rate limiting and caching
+- App runs in debug mode by default in `app.py`
+- `ratings.csv` is tab-delimited
+- Missing release years are filled with median year
+- Movies without ratings are assigned fallback average rating (`3.0`) for ranking stability
 
-## 📝 Routes
+## Future Enhancements
 
-| Route         | Method | Purpose                        |
-| ------------- | ------ | ------------------------------ |
-| `/`           | GET    | Home page with genre selection |
-| `/recommend`  | POST   | Generate recommendations       |
-| `/how_to_use` | GET    | How-to/Instructions page       |
-| `/about`      | GET    | About the project page         |
-
-## 👨‍💻 Development Notes
-
-- **Language**: Python 3
-- **Framework**: Flask
-- **Data Format**: CSV
-- **Status**: Development
-
-## 📄 License
-
-This project is part of a coursework assignment. Usage rights are restricted to educational purposes.
+- Add caching for repeated query combinations
+- Add evaluation metrics (precision@k / nDCG)
+- Add user profile persistence
+- Add configurable weighting controls in UI
 
 ---
 
-**Last Updated**: March 2026
-**Project**: CZT240210 Major Project - Movie Recommendation System
+Last Updated: March 2026
+Project: CZT240210 Major Project - Movie Recommendation System
