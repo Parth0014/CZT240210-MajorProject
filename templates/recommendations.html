@@ -8,6 +8,345 @@
       rel="stylesheet"
       href="{{ url_for('static', filename='style.css') }}"
     />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      .view-toggle {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin: 20px 0;
+      }
+
+      .toggle-btn {
+        padding: 10px 20px;
+        border: 2px solid #007bff;
+        background: white;
+        color: #007bff;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s;
+      }
+
+      .toggle-btn.active {
+        background: #007bff;
+        color: white;
+      }
+
+      .toggle-btn:hover {
+        background: #007bff;
+        color: white;
+      }
+
+      .view-container {
+        display: none;
+      }
+
+      .view-container.active {
+        display: block;
+      }
+
+      .viz-container {
+        max-width: 1200px;
+        margin: 30px auto;
+        padding: 0 20px;
+      }
+
+      .viz-section {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .chart-wrapper {
+        position: relative;
+        height: 460px;
+        margin-bottom: 20px;
+        background: linear-gradient(180deg, #ffffff 0%, #f5faf7 100%);
+        border: 1px solid #d8e9df;
+        border-radius: 12px;
+        padding: 16px;
+      }
+
+      .viz-section.chart-focus {
+        background: linear-gradient(160deg, #f8f9fa 0%, #eef6f0 100%);
+        border: 1px solid #dce8df;
+      }
+
+      .chart-meta {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+
+      .chart-chip {
+        background: #ffffff;
+        border: 1px solid #dce8df;
+        border-radius: 10px;
+        padding: 10px 12px;
+      }
+
+      .chart-chip .label {
+        color: #5e6e62;
+        font-size: 0.75rem;
+        margin-bottom: 2px;
+      }
+
+      .chart-chip .value {
+        color: #1d2f21;
+        font-size: 1rem;
+        font-weight: 700;
+      }
+
+      .recommendations-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        margin-top: 20px;
+      }
+
+      .recommendations-table th {
+        background: #007bff;
+        color: white;
+        padding: 12px;
+        text-align: left;
+      }
+
+      .recommendations-table td {
+        padding: 12px;
+        border-bottom: 1px solid #ddd;
+      }
+
+      .recommendations-table tr:hover {
+        background: #f8f9fa;
+      }
+
+      .distance-badge {
+        background: #28a745;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.85em;
+        font-weight: bold;
+      }
+
+      .viz-info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+
+      .info-card {
+        background: white;
+        padding: 15px;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+      }
+
+      .info-card h4 {
+        color: #333;
+        margin-top: 0;
+      }
+
+      .info-card p {
+        color: #666;
+        margin: 5px 0;
+        font-size: 0.9em;
+      }
+
+      .feature-help {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 16px;
+        height: 16px;
+        margin-left: 6px;
+        border-radius: 50%;
+        background: #2f6fdd;
+        color: #ffffff;
+        font-size: 11px;
+        font-weight: 700;
+        cursor: help;
+        vertical-align: middle;
+      }
+
+      .feature-help .tooltip-text {
+        visibility: hidden;
+        opacity: 0;
+        transition: opacity 0.2s;
+        position: absolute;
+        top: 22px;
+        left: 50%;
+        transform: translateX(-50%);
+        min-width: 300px;
+        max-width: 360px;
+        padding: 10px 12px;
+        border-radius: 8px;
+        background: rgba(17, 24, 39, 0.96);
+        color: #f8fafc;
+        font-size: 0.78rem;
+        line-height: 1.4;
+        text-align: left;
+        z-index: 1500;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+      }
+
+      .feature-help:hover .tooltip-text,
+      .feature-help:focus-within .tooltip-text {
+        visibility: visible;
+        opacity: 1;
+      }
+
+      .selection-summary {
+        background: #f8fbff;
+        border: 1px solid #d9e7ff;
+        border-radius: 10px;
+        padding: 14px;
+        margin-bottom: 14px;
+      }
+
+      .selection-summary h4 {
+        margin: 0 0 8px;
+        color: #1f3f72;
+      }
+
+      .summary-tags {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .summary-tag {
+        background: #ffffff;
+        border: 1px solid #d6e3f8;
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 0.82rem;
+        color: #2f4e7f;
+      }
+
+      .summary-tag.primary {
+        background: #2f6fdd;
+        border-color: #2f6fdd;
+        color: #ffffff;
+      }
+
+      .explain-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(420px, 1fr));
+        gap: 12px;
+      }
+
+      .explain-card {
+        background: #ffffff;
+        border: 1px solid #d9e7df;
+        border-radius: 10px;
+        padding: 12px;
+      }
+
+      .explain-card h4 {
+        margin: 0 0 6px;
+        color: #1b3122;
+        font-size: 0.95rem;
+      }
+
+      .explain-card p {
+        margin: 0;
+        color: #46544b;
+        font-size: 0.86rem;
+        line-height: 1.5;
+      }
+
+      .formula {
+        margin-top: 8px;
+        padding: 8px;
+        border-radius: 8px;
+        background: #f4f8f5;
+        border: 1px dashed #cfe0d4;
+        font-size: 0.8rem;
+        color: #23412d;
+        font-family: "Courier New", monospace;
+        white-space: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+      }
+
+      .open-metrics-btn {
+        display: inline-block;
+        margin-top: 8px;
+        padding: 10px 14px;
+        border: none;
+        border-radius: 8px;
+        background: linear-gradient(135deg, #1d7f55 0%, #2f6fdd 100%);
+        color: #ffffff;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .metrics-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(8, 16, 12, 0.6);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1200;
+        padding: 16px;
+      }
+
+      .metrics-modal.open {
+        display: flex;
+      }
+
+      .metrics-modal-content {
+        width: min(1240px, 96vw);
+        max-height: 90vh;
+        overflow: auto;
+        background: #f8fbf9;
+        border: 1px solid #d6e6db;
+        border-radius: 12px;
+        padding: 22px;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
+      }
+
+      .metrics-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 14px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #dce8df;
+      }
+
+      .metrics-modal-header h3 {
+        margin: 0;
+        color: #1b3122;
+      }
+
+      .close-metrics-btn {
+        border: none;
+        background: linear-gradient(135deg, #1d7f55 0%, #2f6fdd 100%);
+        color: #ffffff;
+        border-radius: 8px;
+        padding: 7px 14px;
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 1rem;
+        line-height: 1;
+        width: fit-content;
+      }
+
+      @media (max-width: 980px) {
+        .explain-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
   </head>
   <body>
     <nav>
@@ -19,26 +358,190 @@
     </nav>
 
     <header>
-      <h1>Your Movie Recommendations</h1>
-      <h3>Discover movies tailored just for you</h3>
+      <h1>🎬 Your Movie Recommendations</h1>
+      <h3>Discover movies tailored just for you with KNN ML Algorithm</h3>
     </header>
 
     <div class="container">
       {% if movies %}
-      <table>
-        <tr>
-          <th>Title</th>
-          <th>Average Rating</th>
-          <th>Release Year</th>
-        </tr>
-        {% for movie in movies %}
-        <tr>
-          <td>{{ movie.title }}</td>
-          <td>{{ movie.avg_rating }}</td>
-          <td>{{ movie.release_year }}</td>
-        </tr>
-        {% endfor %}
-      </table>
+      <!-- Toggle Buttons -->
+      <div class="view-toggle">
+        <button
+          type="button"
+          class="toggle-btn active"
+          onclick="switchView(this, 'table')"
+        >
+          📋 Movies List
+        </button>
+        <button
+          type="button"
+          class="toggle-btn"
+          onclick="switchView(this, 'visualization')"
+        >
+          📊 Visualization
+        </button>
+      </div>
+
+      <!-- Table View -->
+      <div id="table-view" class="view-container active">
+        <div class="selection-summary">
+          <h4>✅ Your Selection</h4>
+          <div class="summary-tags">
+            <span class="summary-tag primary"
+              >Option: {{ preference_label }}</span
+            >
+            {% for genre in viz_data.selected_genres %}
+            <span class="summary-tag">{{ genre }}</span>
+            {% endfor %}
+          </div>
+        </div>
+
+        <table class="recommendations-table">
+          <tr>
+            <th>Rank</th>
+            <th>Title</th>
+            <th>Average Rating</th>
+            <th>Release Year</th>
+            <th>Distance Score</th>
+          </tr>
+          {% for movie in movies %}
+          <tr>
+            <td><strong>#{{ loop.index }}</strong></td>
+            <td>{{ movie.title }}</td>
+            <td>{{ movie.avg_rating }}/5</td>
+            <td>{{ movie.release_year | int }}</td>
+            <td>
+              <span class="distance-badge">{{ "%.3f" % movie.distance }}</span>
+            </td>
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
+
+      <!-- Visualization View -->
+      <div id="visualization-view" class="view-container">
+        <div
+          id="viz-data"
+          data-all-distances="{{ viz_data.all_distances | tojson | forceescape }}"
+          data-top-count="{{ viz_data.top_10_indices | length }}"
+          data-top-movies="{{ movies | tojson | forceescape }}"
+        ></div>
+        <div class="viz-container">
+          <!-- Key Metrics -->
+          <div class="viz-section">
+            <div class="viz-info-grid">
+              <div class="info-card">
+                <h4>📈 Algorithm: KNN (K=10)</h4>
+                <p>
+                  <strong>Total Movies Evaluated:</strong> {{
+                  viz_data.total_movies }}
+                </p>
+                <p>
+                  <strong>Features:</strong> {{ viz_data.feature_count }}
+                  <span
+                    class="feature-help"
+                    tabindex="0"
+                    aria-label="What are features?"
+                    >?
+                    <span class="tooltip-text"
+                      >Features are the input values used by KNN to compare
+                      movies: all genre flags (20) + normalized average rating +
+                      normalized release year = 22 total features.</span
+                    >
+                  </span>
+                </p>
+                <p><strong>Metric:</strong> Euclidean Distance</p>
+              </div>
+              <div class="info-card">
+                <h4>🎯 Recommendation Ranking</h4>
+                <p><strong>Method:</strong> Distance Score</p>
+                <p><strong>Your Option:</strong> {{ preference_label }}</p>
+                <p>
+                  <small
+                    >Lower distance = Better match to your preferences</small
+                  >
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="viz-section">
+            <h2>🧠 Metric Logic & KNN Working</h2>
+            <p>
+              Open this popup to see all 6 metric calculations and how KNN is
+              applied in this project.
+            </p>
+            <button
+              type="button"
+              class="open-metrics-btn"
+              onclick="openMetricsModal()"
+            >
+              View Calculation Details
+            </button>
+          </div>
+
+          <!-- Distance Chart -->
+          <div class="viz-section chart-focus">
+            <h2>📉 Top 10 Distance Trend (Closest Matches)</h2>
+            <p style="color: #666; margin-bottom: 15px">
+              Lower distance means better match. This view only shows your top
+              10 recommendations as a continuous trend.
+            </p>
+            <div class="chart-meta">
+              <div class="chart-chip">
+                <div class="label">Best Match</div>
+                <div class="value" id="bestDistance">--</div>
+              </div>
+              <div class="chart-chip">
+                <div class="label">Average Distance</div>
+                <div class="value" id="avgDistance">--</div>
+              </div>
+              <div class="chart-chip">
+                <div class="label">Distance Range</div>
+                <div class="value" id="rangeDistance">--</div>
+              </div>
+            </div>
+            <div class="chart-wrapper">
+              <canvas id="distanceChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Ranked Table -->
+          <div class="viz-section">
+            <h2>🎯 Top 10 - Ranked by Distance</h2>
+            <table class="recommendations-table">
+              <tr>
+                <th>Rank</th>
+                <th>Movie Title</th>
+                <th>Avg Rating</th>
+                <th>Release Year</th>
+                <th>Distance</th>
+                <th>Match Quality</th>
+              </tr>
+              {% for movie in movies %}
+              <tr>
+                <td><strong>#{{ loop.index }}</strong></td>
+                <td>{{ movie.title }}</td>
+                <td>{{ movie.avg_rating }}/5</td>
+                <td>{{ movie.release_year | int }}</td>
+                <td>
+                  <span class="distance-badge"
+                    >{{ "%.3f" % movie.distance }}</span
+                  >
+                </td>
+                <td>
+                  {% if movie.distance < 0.3 %}⭐⭐⭐⭐⭐ Perfect {% elif
+                  movie.distance < 0.5 %}⭐⭐⭐⭐ Excellent {% elif
+                  movie.distance < 0.7 %}⭐⭐⭐ Good {% else %}⭐⭐ Fair {%
+                  endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </table>
+          </div>
+        </div>
+      </div>
+
       <p
         style="
           margin-top: 20px;
@@ -56,6 +559,7 @@
           >← Get More Recommendations</a
         >
       </p>
+
       {% else %}
       <div style="text-align: center; padding: 40px 20px">
         <h2 style="color: var(--text-secondary); margin-bottom: 10px">
@@ -91,5 +595,316 @@
         reserved.
       </p>
     </footer>
+
+    <div
+      id="metricsModal"
+      class="metrics-modal"
+      onclick="closeMetricsModal(event)"
+    >
+      <div class="metrics-modal-content" onclick="event.stopPropagation()">
+        <div class="metrics-modal-header">
+          <h3>How Metrics Are Calculated (6 Metrics)</h3>
+          <button
+            type="button"
+            class="close-metrics-btn"
+            onclick="closeMetricsModal()"
+          >
+            ← Back
+          </button>
+        </div>
+
+        <div class="explain-grid">
+          <div class="explain-card">
+            <h4>1) Feature Vector Per Movie</h4>
+            <p>
+              Each movie is converted to one vector using: genre binary flags +
+              normalized rating + normalized release year.
+            </p>
+            <div class="formula">
+              movie_vector = [genre_1..genre_n, rating/5,
+              (year-minYear)/(maxYear-minYear)]
+            </div>
+          </div>
+
+          <div class="explain-card">
+            <h4>2) User Preference Vector</h4>
+            <p>
+              Your selected genres are 1, others 0. Then rating/year targets are
+              set from selected option.
+            </p>
+            <div class="formula">
+              recent_release → ratingTarget=0.70, yearTarget=1.00 | high_rating
+              → ratingTarget=1.00, yearTarget=0.60
+            </div>
+          </div>
+
+          <div class="explain-card">
+            <h4>3) Preference Weights</h4>
+            <p>
+              Weights are applied before KNN so preference changes the actual
+              distance calculation.
+            </p>
+            <div class="formula">
+              recent_release → ratingWeight=0.8, yearWeight=2.6 | high_rating →
+              ratingWeight=2.0, yearWeight=0.8
+            </div>
+          </div>
+
+          <div class="explain-card">
+            <h4>4) KNN Distance + Top 10</h4>
+            <p>
+              Euclidean distance is computed to all movies, sorted ascending,
+              and nearest 10 are returned.
+            </p>
+            <div class="formula">
+              distance = sqrt(sum((weighted_movie_i - weighted_user_i)^2))
+            </div>
+          </div>
+
+          <div class="explain-card">
+            <h4>5) Chart Summary Metrics</h4>
+            <p>
+              Best Match = minimum distance, Average Distance = mean of top 10,
+              Distance Range = max-min.
+            </p>
+            <div class="formula">
+              best=min(d), avg=sum(d)/10, range=max(d)-min(d)
+            </div>
+          </div>
+
+          <div class="explain-card">
+            <h4>6) Match Quality (Stars + Remark)</h4>
+            <p>
+              Quality labels come from distance thresholds used in
+              recommendation table.
+            </p>
+            <div class="formula">
+              d &lt; 0.3 → ★★★★★ Perfect | 0.3 ≤ d &lt; 0.5 → ★★★★ Excellent |
+              0.5 ≤ d &lt; 0.7 → ★★★ Good | d ≥ 0.7 → ★★ Fair
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function openMetricsModal() {
+        const modal = document.getElementById("metricsModal");
+        if (modal) {
+          modal.classList.add("open");
+        }
+      }
+
+      function closeMetricsModal(event) {
+        const modal = document.getElementById("metricsModal");
+        if (modal) {
+          modal.classList.remove("open");
+        }
+      }
+
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") {
+          closeMetricsModal();
+        }
+      });
+
+      // Toggle between views
+      function switchView(button, viewName) {
+        // Hide all views
+        document.getElementById("table-view").classList.remove("active");
+        document
+          .getElementById("visualization-view")
+          .classList.remove("active");
+
+        // Remove active class from all buttons
+        document
+          .querySelectorAll(".toggle-btn")
+          .forEach((btn) => btn.classList.remove("active"));
+
+        // Show selected view
+        document.getElementById(viewName + "-view").classList.add("active");
+
+        // Activate button
+        button.classList.add("active");
+
+        // Recreate chart if visualization is shown
+        if (viewName === "visualization") {
+          setTimeout(function () {
+            createDistanceChart();
+          }, 100);
+        }
+      }
+
+      // Create distance chart
+      function createDistanceChart() {
+        try {
+          const vizDataEl = document.getElementById("viz-data");
+          if (!vizDataEl) {
+            return;
+          }
+
+          const topMoviesJson = vizDataEl.dataset.topMovies || "[]";
+          const topMovies = JSON.parse(topMoviesJson);
+
+          if (!Array.isArray(topMovies) || topMovies.length === 0) {
+            return;
+          }
+
+          const labels = topMovies.map(function (_m, idx) {
+            return "#" + (idx + 1);
+          });
+          const fullTitles = topMovies.map(function (m) {
+            return m && m.title ? String(m.title) : "Unknown";
+          });
+          const distances = topMovies.map(function (m) {
+            return m && typeof m.distance !== "undefined"
+              ? Number(m.distance)
+              : 0;
+          });
+          const best = Math.min.apply(null, distances);
+          const worst = Math.max.apply(null, distances);
+          const avg =
+            distances.reduce(function (sum, n) {
+              return sum + n;
+            }, 0) / distances.length;
+
+          const bestEl = document.getElementById("bestDistance");
+          const avgEl = document.getElementById("avgDistance");
+          const rangeEl = document.getElementById("rangeDistance");
+          if (bestEl) bestEl.textContent = best.toFixed(3);
+          if (avgEl) avgEl.textContent = avg.toFixed(3);
+          if (rangeEl) rangeEl.textContent = (worst - best).toFixed(3);
+
+          const backgroundColor = "rgba(40, 167, 69, 0.22)";
+          const borderColor = "rgb(40, 167, 69)";
+
+          // Destroy previous chart if it exists
+          if (
+            window.distanceChartInstance &&
+            typeof window.distanceChartInstance.destroy === "function"
+          ) {
+            window.distanceChartInstance.destroy();
+          }
+
+          const canvas = document.getElementById("distanceChart");
+          if (!canvas) {
+            return;
+          }
+          const ctx = canvas.getContext("2d");
+
+          const fillGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+          fillGradient.addColorStop(0, "rgba(40, 167, 69, 0.35)");
+          fillGradient.addColorStop(1, "rgba(40, 167, 69, 0.03)");
+
+          const strokeGradient = ctx.createLinearGradient(
+            0,
+            0,
+            canvas.width,
+            0,
+          );
+          strokeGradient.addColorStop(0, "rgba(22, 163, 74, 1)");
+          strokeGradient.addColorStop(1, "rgba(37, 99, 235, 0.9)");
+
+          window.distanceChartInstance = new Chart(ctx, {
+            type: "line",
+            data: {
+              labels: labels,
+              datasets: [
+                {
+                  label: "Euclidean Distance (Lower is Better)",
+                  data: distances,
+                  backgroundColor: fillGradient,
+                  borderColor: strokeGradient,
+                  borderWidth: 3,
+                  fill: true,
+                  tension: 0.34,
+                  pointRadius: 4.5,
+                  pointHoverRadius: 7,
+                  pointBackgroundColor: "rgb(22, 163, 74)",
+                  pointBorderColor: "#ffffff",
+                  pointBorderWidth: 2,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              animation: {
+                duration: 220,
+              },
+              layout: {
+                padding: {
+                  left: 16,
+                  right: 16,
+                  top: 12,
+                  bottom: 12,
+                },
+              },
+              plugins: {
+                legend: {
+                  display: false,
+                  labels: {
+                    font: { size: 12 },
+                  },
+                },
+                tooltip: {
+                  backgroundColor: "rgba(19, 28, 22, 0.95)",
+                  titleColor: "#e9fff0",
+                  bodyColor: "#d5f5e1",
+                  borderColor: "rgba(74, 222, 128, 0.4)",
+                  borderWidth: 1,
+                  padding: 12,
+                  callbacks: {
+                    title: function (items) {
+                      const idx = items[0].dataIndex;
+                      return "Rank #" + (idx + 1) + " - " + fullTitles[idx];
+                    },
+                    label: function (context) {
+                      return "Distance: " + Number(context.parsed.y).toFixed(3);
+                    },
+                  },
+                },
+              },
+              scales: {
+                x: {
+                  title: {
+                    display: true,
+                    text: "Recommendation Rank",
+                  },
+                  grid: {
+                    color: "rgba(22, 163, 74, 0.08)",
+                    drawBorder: false,
+                    borderDash: [3, 5],
+                  },
+                  ticks: {
+                    padding: 8,
+                  },
+                },
+                y: {
+                  beginAtZero: true,
+                  title: {
+                    display: true,
+                    text: "Distance",
+                  },
+                  grid: {
+                    color: "rgba(22, 163, 74, 0.1)",
+                    drawBorder: false,
+                    borderDash: [3, 5],
+                  },
+                  ticks: {
+                    padding: 10,
+                    font: {
+                      size: 11,
+                    },
+                  },
+                },
+              },
+            },
+          });
+        } catch (e) {
+          console.error("Visualization failed to render:", e);
+        }
+      }
+    </script>
   </body>
 </html>

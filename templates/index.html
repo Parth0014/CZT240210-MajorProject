@@ -21,7 +21,7 @@
 
     <!-- Header Section -->
     <header>
-      <h1 style="color: aliceblue">MovieVerse</h1>
+      <h1>MovieVerse</h1>
       <h3>
         Explore and discover the latest movies up to 2024 with personalized
         recommendations!
@@ -34,7 +34,7 @@
         Select your preferred movie genres and sorting preference to get
         tailored recommendations
       </h3>
-      <form action="/recommend" method="POST">
+      <form action="/recommend" method="POST" id="recommendForm">
         <div class="checkbox-group">
           <label>
             <input type="checkbox" name="genres" value="Action" /> Action
@@ -89,9 +89,19 @@
           </label>
         </div>
 
-        <button type="submit">Get Recommendations</button>
+        <div style="display: flex; gap: 10px; justify-content: center">
+          <button type="submit" onclick="setAction('/recommend')">
+            Get Recommendations
+          </button>
+        </div>
       </form>
     </div>
+
+    <script>
+      function setAction(action) {
+        document.getElementById("recommendForm").action = action;
+      }
+    </script>
 
     <!-- Footer Section -->
     <footer>
