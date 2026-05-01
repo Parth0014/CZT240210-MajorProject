@@ -380,6 +380,9 @@
       .rec-table-wrap {
         overflow-x: auto;
       }
+      .recommendations-table {
+        min-width: 760px;
+      }
       table {
         width: 100%;
         border-collapse: collapse;
@@ -593,13 +596,95 @@
         nav {
           padding: 0 16px;
         }
+        nav ul {
+          flex-wrap: wrap;
+          justify-content: center;
+          gap: 6px;
+        }
+        nav a {
+          padding: 6px 10px;
+        }
         header,
         .page {
           padding-left: 16px;
           padding-right: 16px;
         }
+        header {
+          padding-top: 42px;
+          padding-bottom: 28px;
+        }
+        .card-header,
+        .card-body {
+          padding-left: 16px;
+          padding-right: 16px;
+        }
+        .stat-row,
+        .algo-steps,
+        .dist-legend {
+          grid-template-columns: 1fr;
+        }
+        .algo-steps {
+          display: grid;
+        }
+        .chart-legend {
+          flex-direction: column;
+          gap: 10px;
+        }
         .chart-shell {
           height: 260px;
+        }
+        .chart-meta {
+          grid-template-columns: 1fr;
+        }
+        .viz-info-grid {
+          grid-template-columns: 1fr;
+        }
+        .feature-help .tooltip-text {
+          min-width: 220px;
+          max-width: 260px;
+          left: auto;
+          right: 0;
+          transform: none;
+        }
+        .metrics-modal-content {
+          padding: 16px;
+        }
+        .metrics-modal-header {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+        .recommendations-table {
+          min-width: 620px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .page {
+          padding-left: 12px;
+          padding-right: 12px;
+          gap: 20px;
+        }
+        header h1 {
+          font-size: 2rem;
+        }
+        .card-body {
+          padding-top: 18px;
+          padding-bottom: 18px;
+        }
+        .stat-pill,
+        .algo-step,
+        .dist-card {
+          padding: 14px;
+        }
+        .chart-shell {
+          height: 220px;
+        }
+        .recommendations-table {
+          min-width: 560px;
+        }
+        .recommendations-table th,
+        .recommendations-table td {
+          padding: 10px 12px;
         }
       }
     </style>

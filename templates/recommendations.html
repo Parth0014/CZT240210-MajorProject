@@ -38,6 +38,15 @@
         color: white;
       }
 
+      .recommendations-table-wrap {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .recommendations-table {
+        min-width: 680px;
+      }
+
       .view-container {
         display: none;
       }
@@ -346,6 +355,96 @@
           grid-template-columns: 1fr;
         }
       }
+
+      @media (max-width: 768px) {
+        .view-toggle {
+          flex-direction: column;
+          margin: 16px 0;
+        }
+
+        .toggle-btn {
+          width: 100%;
+        }
+
+        .viz-container {
+          padding: 0;
+          margin: 20px auto;
+        }
+
+        .viz-section {
+          padding: 16px;
+          margin-bottom: 18px;
+        }
+
+        .viz-info-grid,
+        .explain-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .chart-meta {
+          grid-template-columns: 1fr;
+        }
+
+        .chart-wrapper {
+          height: 320px;
+          padding: 12px;
+        }
+
+        .summary-tags {
+          gap: 6px;
+        }
+
+        .summary-tag {
+          font-size: 0.76rem;
+        }
+
+        .metrics-modal-content {
+          padding: 16px;
+        }
+
+        .metrics-modal-header {
+          align-items: flex-start;
+          gap: 10px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .container {
+          margin: 20px 8px;
+          padding: 14px;
+        }
+
+        .selection-summary,
+        .viz-section,
+        .info-card {
+          padding: 12px;
+        }
+
+        .chart-wrapper {
+          height: 260px;
+        }
+
+        .recommendations-table {
+          min-width: 620px;
+        }
+
+        .recommendations-table th,
+        .recommendations-table td {
+          padding: 10px 12px;
+        }
+
+        .feature-help .tooltip-text {
+          min-width: 230px;
+          max-width: 280px;
+          left: auto;
+          right: 0;
+          transform: none;
+        }
+
+        .formula {
+          white-space: normal;
+        }
+      }
     </style>
   </head>
   <body>
@@ -361,6 +460,41 @@
       <h1>🎬 Your Movie Recommendations</h1>
       <h3>Discover movies tailored just for you with KNN ML Algorithm</h3>
     </header>
+
+    <script>
+      window.switchView = function (button, viewName) {
+        var tableView = document.getElementById("table-view");
+        var visualizationView = document.getElementById("visualization-view");
+        if (tableView) {
+          tableView.classList.remove("active");
+        }
+        if (visualizationView) {
+          visualizationView.classList.remove("active");
+        }
+
+        document.querySelectorAll(".toggle-btn").forEach(function (btn) {
+          btn.classList.remove("active");
+        });
+
+        var targetView = document.getElementById(viewName + "-view");
+        if (targetView) {
+          targetView.classList.add("active");
+        }
+
+        if (button) {
+          button.classList.add("active");
+        }
+
+        if (
+          viewName === "visualization" &&
+          typeof createDistanceChart === "function"
+        ) {
+          setTimeout(function () {
+            createDistanceChart();
+          }, 100);
+        }
+      };
+    </script>
 
     <div class="container">
       {% if movies %}
@@ -396,26 +530,30 @@
           </div>
         </div>
 
-        <table class="recommendations-table">
-          <tr>
-            <th>Rank</th>
-            <th>Title</th>
-            <th>Average Rating</th>
-            <th>Release Year</th>
-            <th>Distance Score</th>
-          </tr>
-          {% for movie in movies %}
-          <tr>
-            <td><strong>#{{ loop.index }}</strong></td>
-            <td>{{ movie.title }}</td>
-            <td>{{ movie.avg_rating }}/5</td>
-            <td>{{ movie.release_year | int }}</td>
-            <td>
-              <span class="distance-badge">{{ "%.3f" % movie.distance }}</span>
-            </td>
-          </tr>
-          {% endfor %}
-        </table>
+        <div class="recommendations-table-wrap">
+          <table class="recommendations-table">
+            <tr>
+              <th>Rank</th>
+              <th>Title</th>
+              <th>Average Rating</th>
+              <th>Release Year</th>
+              <th>Distance Score</th>
+            </tr>
+            {% for movie in movies %}
+            <tr>
+              <td><strong>#{{ loop.index }}</strong></td>
+              <td>{{ movie.title }}</td>
+              <td>{{ movie.avg_rating }}/5</td>
+              <td>{{ movie.release_year | int }}</td>
+              <td>
+                <span class="distance-badge"
+                  >{{ "%.3f" % movie.distance }}</span
+                >
+              </td>
+            </tr>
+            {% endfor %}
+          </table>
+        </div>
       </div>
 
       <!-- Visualization View -->
@@ -509,35 +647,37 @@
           <!-- Ranked Table -->
           <div class="viz-section">
             <h2>🎯 Top 10 - Ranked by Distance</h2>
-            <table class="recommendations-table">
-              <tr>
-                <th>Rank</th>
-                <th>Movie Title</th>
-                <th>Avg Rating</th>
-                <th>Release Year</th>
-                <th>Distance</th>
-                <th>Match Quality</th>
-              </tr>
-              {% for movie in movies %}
-              <tr>
-                <td><strong>#{{ loop.index }}</strong></td>
-                <td>{{ movie.title }}</td>
-                <td>{{ movie.avg_rating }}/5</td>
-                <td>{{ movie.release_year | int }}</td>
-                <td>
-                  <span class="distance-badge"
-                    >{{ "%.3f" % movie.distance }}</span
-                  >
-                </td>
-                <td>
-                  {% if movie.distance < 0.3 %}⭐⭐⭐⭐⭐ Perfect {% elif
-                  movie.distance < 0.5 %}⭐⭐⭐⭐ Excellent {% elif
-                  movie.distance < 0.7 %}⭐⭐⭐ Good {% else %}⭐⭐ Fair {%
-                  endif %}
-                </td>
-              </tr>
-              {% endfor %}
-            </table>
+            <div class="recommendations-table-wrap">
+              <table class="recommendations-table">
+                <tr>
+                  <th>Rank</th>
+                  <th>Movie Title</th>
+                  <th>Avg Rating</th>
+                  <th>Release Year</th>
+                  <th>Distance</th>
+                  <th>Match Quality</th>
+                </tr>
+                {% for movie in movies %}
+                <tr>
+                  <td><strong>#{{ loop.index }}</strong></td>
+                  <td>{{ movie.title }}</td>
+                  <td>{{ movie.avg_rating }}/5</td>
+                  <td>{{ movie.release_year | int }}</td>
+                  <td>
+                    <span class="distance-badge"
+                      >{{ "%.3f" % movie.distance }}</span
+                    >
+                  </td>
+                  <td>
+                    {% if movie.distance < 0.3 %}⭐⭐⭐⭐⭐ Perfect {% elif
+                    movie.distance < 0.5 %}⭐⭐⭐⭐ Excellent {% elif
+                    movie.distance < 0.7 %}⭐⭐⭐ Good {% else %}⭐⭐ Fair {%
+                    endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </table>
+            </div>
           </div>
         </div>
       </div>
